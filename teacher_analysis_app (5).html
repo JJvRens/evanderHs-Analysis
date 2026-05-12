@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Evander High School — Learner Performance Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ink:#1a1a18;--ink2:#3a3a35;--ink3:#7a7a72;
+  --paper:#f5f7f2;--paper2:#ebefe6;--paper3:#dde4d6;
+  --green-dark:#1a4d25;--green-mid:#2e7d42;--green-light:#d6e8bc;--green-pale:#eef5e6;
+  --blue-col:#9dc3e6;--gold:#b8860b;--red:#8b2020;
+  --border:#c8d4be;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);font-size:14px;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:var(--green-dark);color:white;padding:0 1.5rem;display:flex;align-items:center;height:54px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--gold);}
+.logo{font-size:13px;font-weight:600;color:white;flex-shrink:0;padding-right:1.5rem;border-right:1px solid rgba(255,255,255,0.2);line-height:1.3;}
+.logo small{display:block;font-size:9px;font-weight:300;opacity:0.7;letter-spacing:0.05em;text-transform:uppercase;}
+.nav-tabs{display:flex;flex:1;padding-left:0.75rem;}
+.nav-tab{padding:0 1rem;height:54px;display:flex;align-items:center;font-size:11px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.5);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-3px;transition:all 0.15s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:var(--sans);}
+.nav-tab:hover{color:rgba(255,255,255,0.8);}
+.nav-tab.active{color:white;border-bottom-color:var(--gold);}
+.nav-tab .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);margin-left:5px;display:none;}
+.nav-tab.has-data .dot{display:inline-block;}
+.print-btn{margin-left:auto;padding:6px 14px;background:var(--gold);color:white;border:none;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--sans);letter-spacing:0.05em;text-transform:uppercase;flex-shrink:0;}
+.print-btn:hover{background:#c99b20;}
+
+/* PAGES */
+.page{display:none;padding:1.5rem 2rem;max-width:1150px;margin:0 auto;}
+.page.active{display:block;}
+
+/* SETUP */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1.25rem;background:white;padding:1rem;border:1px solid var(--border);border-radius:4px;}
+.field-group{display:flex;flex-direction:column;gap:3px;}
+.field-group label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);}
+.field-group input,.field-group select{padding:6px 8px;border:1px solid var(--border);border-radius:3px;font-family:var(--sans);font-size:12px;background:white;color:var(--ink);outline:none;}
+.field-group input:focus,.field-group select:focus{border-color:var(--green-mid);}
+
+/* Q CONFIG */
+.q-config{background:white;border:1px solid var(--border);border-radius:4px;padding:1rem;margin-bottom:1.25rem;}
+.q-config-title{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:0.75rem;}
+.q-rows{display:flex;flex-direction:column;gap:5px;}
+.q-row{display:grid;grid-template-columns:50px 1fr 70px 90px;gap:8px;align-items:center;}
+.q-row label{font-size:11px;color:var(--ink2);font-family:var(--mono);font-weight:500;}
+.q-row input{padding:5px 7px;border:1px solid var(--border);border-radius:3px;font-family:var(--sans);font-size:12px;background:white;color:var(--ink);outline:none;}
+.q-row input:focus{border-color:var(--green-mid);}
+.add-q-btn{margin-top:8px;padding:5px 12px;border:1px dashed var(--border);background:none;border-radius:3px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:var(--sans);}
+.add-q-btn:hover{border-color:var(--green-mid);color:var(--green-dark);}
+.remove-q{padding:3px 7px;border:none;background:none;color:var(--ink3);cursor:pointer;font-size:13px;}
+.remove-q:hover{color:var(--red);}
+
+/* MARK TABLE */
+.section-lbl{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3);margin-bottom:0.5rem;margin-top:1.25rem;}
+.table-wrap{overflow-x:auto;}
+table.et{width:100%;border-collapse:collapse;font-size:12px;}
+table.et th{background:var(--green-dark);color:white;padding:6px 8px;text-align:center;font-size:10px;font-weight:500;letter-spacing:0.04em;white-space:nowrap;border:1px solid rgba(255,255,255,0.15);}
+table.et th.left{text-align:left;}
+table.et td{padding:3px 5px;border:1px solid var(--paper3);text-align:center;background:white;}
+table.et tr:nth-child(even) td{background:#fafcf8;}
+table.et tr:hover td{background:var(--green-pale);}
+table.et td.nc{text-align:left;padding-left:8px;}
+table.et td input.mi{width:48px;padding:3px 5px;border:1px solid var(--border);border-radius:2px;font-family:var(--mono);font-size:11px;text-align:center;background:white;color:var(--ink);outline:none;}
+table.et td input.mi:focus{border-color:var(--green-mid);background:var(--green-pale);}
+table.et td input.ni{width:170px;padding:3px 7px;border:1px solid var(--border);border-radius:2px;font-family:var(--sans);font-size:12px;background:white;color:var(--ink);outline:none;}
+table.et td input.ni:focus{border-color:var(--green-mid);}
+.tc{font-family:var(--mono);font-weight:600;font-size:12px;}
+.pc{font-family:var(--mono);font-size:11px;}
+.lb{display:inline-block;padding:1px 6px;border-radius:2px;font-size:10px;font-family:var(--mono);font-weight:600;}
+.l1{background:#fde8e8;color:#7a1a1a;}.l2{background:#fdf0dc;color:#6b3d00;}.l3{background:#fff8dc;color:#5a4200;}
+.l4{background:#deeeff;color:#0d3d7a;}.l5{background:#deeeff;color:#0d3d7a;}.l6{background:#e4f0e4;color:#1a4d2a;}
+.l7{background:#d0e8d8;color:#0f3d20;}.l8{background:#b8dccc;color:#0a2d18;}
+tr.absent td{opacity:0.4;}
+.add-s-btn{margin-top:8px;padding:6px 14px;border:1px dashed var(--border);background:none;border-radius:3px;font-size:11px;color:var(--ink3);cursor:pointer;font-family:var(--sans);}
+.add-s-btn:hover{border-color:var(--green-mid);color:var(--green-dark);}
+
+/* NO-PRINT BAR */
+.npbar{display:flex;gap:8px;align-items:center;margin-bottom:1rem;padding:8px 12px;background:var(--green-pale);border:1px solid var(--green-light);border-radius:3px;font-size:12px;color:var(--green-dark);}
+
+/* PRINT */
+@media print{
+  .topbar,.npbar,.add-s-btn,.add-q-btn,.remove-q,.print-btn,.setup-grid,.q-config,.section-lbl{display:none!important;}
+  .page{display:block!important;padding:0;max-width:none;}
+  .page:not(.pt){display:none!important;}
+  body{background:white;}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Evander High School<small>Learner Performance Tool</small></div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('entry')" id="tab-entry">Mark Entry</button>
+    <button class="nav-tab" onclick="showPage('summary')" id="tab-summary">Item Analysis <span class="dot"></span></button>
+    <button class="nav-tab" onclick="showPage('spip')" id="tab-spip">SPIP <span class="dot"></span></button>
+    <button class="nav-tab" onclick="showPage('fortnightly')" id="tab-fortnightly">Fortnightly Report <span class="dot"></span></button>
+  </nav>
+  <button class="print-btn" onclick="printPage()">⎙ Print</button>
+</div>
+
+<!-- MARK ENTRY -->
+<div class="page active" id="page-entry">
+  <div class="setup-grid">
+    <div class="field-group"><label>School name</label><input id="f-school" value="Evander High School" oninput="updateMeta()"/></div>
+    <div class="field-group"><label>Educator</label><input id="f-educator" value="Ms J J v Rensburg" oninput="updateMeta()"/></div>
+    <div class="field-group"><label>Subject</label><input id="f-subject" value="Computer Applications Technology" oninput="updateMeta()"/></div>
+    <div class="field-group"><label>Grade</label><input id="f-grade" value="10" oninput="updateMeta()"/></div>
+    <div class="field-group"><label>Task</label><input id="f-task" value="Term 1 Theory" oninput="updateMeta()"/></div>
+    <div class="field-group"><label>Date</label><input id="f-date" type="date" value="2026-02-23" oninput="updateMeta()"/></div>
+    <div class="field-group"><label>Circuit</label><input id="f-circuit" value="Highveld Ridge East" oninput="updateMeta()"/></div>
+    <div class="field-group"><label>Stream</label>
+      <select id="f-stream" oninput="updateMeta()">
+        <option value="BCM">BCM (1)</option><option value="Sciences">Sciences (2)</option>
+        <option value="Languages" selected>Languages (3)</option><option value="Humanities">Humanities (4)</option>
+        <option value="Technical">Technical (5)</option>
+      </select>
+    </div>
+    <div class="field-group"><label>SPIP % Target</label><input id="f-target" value="50" type="number" min="0" max="100" oninput="updateMeta()"/></div>
+  </div>
+  <div class="q-config">
+    <div class="q-config-title">Questions / Topics configuration</div>
+    <div class="q-rows" id="q-rows"></div>
+    <button class="add-q-btn" onclick="addQuestion()">+ Add question / topic</button>
+  </div>
+  <div class="section-lbl">Learner marks</div>
+
+  <!-- IMPORT BAR -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:8px 12px;background:white;border:1px solid var(--border);border-radius:4px;flex-wrap:wrap">
+    <span style="font-size:11px;color:var(--ink3)">Import learner names from Excel:</span>
+    <label style="padding:5px 14px;background:var(--green-dark);color:white;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:0.05em;font-family:var(--sans)">
+      📂 Upload .xlsx / .xls
+      <input type="file" id="excel-upload" accept=".xlsx,.xls,.csv" style="display:none" onchange="importFromExcel(this)"/>
+    </label>
+    <span style="font-size:11px;color:var(--ink3)">— the app will look for a column containing learner names and import them automatically.</span>
+    <span id="import-status" style="font-size:11px;font-weight:600;color:var(--green-mid)"></span>
+  </div>
+
+  <div class="table-wrap">
+    <table class="et"><thead id="mark-thead"></thead><tbody id="mark-tbody"></tbody></table>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+    <button class="add-s-btn" onclick="addStudent()">+ Add learner manually</button>
+    <button class="add-s-btn" onclick="clearAllStudents()" style="color:var(--red);border-color:#e8b4b4">✕ Clear all learners</button>
+  </div>
+</div>
+
+<!-- ITEM ANALYSIS -->
+<div class="page" id="page-summary"><div id="summary-content"></div></div>
+
+<!-- SPIP -->
+<div class="page" id="page-spip">
+  <div class="npbar">The 2 weakest topics are auto-identified from your marks. Fill in each column — use <strong style="margin:0 3px">✦ AI suggest</strong> in the Intervention column for inspiration.</div>
+  <div id="spip-render"></div>
+</div>
+
+<!-- FORTNIGHTLY -->
+<div class="page" id="page-fortnightly">
+  <div class="npbar">Auto-populated from mark entry data. Click Print to file a hardcopy.</div>
+  <div id="fortnightly-render"></div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let questions=[
+  {label:"Q1",topic:"Multiple choice",max:5},
+  {label:"Q2",topic:"Matching items",max:3},
+  {label:"Q3",topic:"True/False items",max:2},
+  {label:"Q4",topic:"System Technologies",max:10},
+  {label:"Q5",topic:"Social Implications",max:10},
+  {label:"Q6",topic:"Solution Development",max:5},
+  {label:"Q7",topic:"Integrated Scenario",max:15},
+];
+let students=[
+  {name:"Gwebu Onalina",marks:[2,3,2,5,0,3,3]},
+  {name:"Leotlela Blessing",marks:[4,3,2,9,7,3,7]},
+  {name:"Maahlo Lethabo",marks:[0,0,0,0,0,0,0]},
+  {name:"Mahlangu Lifalethu",marks:[5,2,2,10,8,5,13]},
+  {name:"Manyathela Tshegofatso",marks:[0,0,0,0,0,0,0]},
+  {name:"Mashiloane Atlegang",marks:[2,2,0,9,4,2,6]},
+  {name:"Mathevula Engetelo",marks:[1,2,0,9,0,2,4]},
+  {name:"Molaoa Tshimollo",marks:[4,2,1,8,1,1,4]},
+  {name:"Molewa Mmathapelo",marks:[3,3,1,11,2,4,8]},
+  {name:"Motsai Masimbonge",marks:[2,2,0,3,4,1,3]},
+  {name:"Mphahlele Jonathan",marks:[3,3,2,9,1,1,6]},
+  {name:"Mphali Nkosana",marks:[0,0,0,0,0,0,0]},
+  {name:"Mtetwa Owethu",marks:[2,3,1,9,3,1,6]},
+  {name:"Mthimunye Siyamthanda",marks:[3,3,2,5,2,1,3]},
+  {name:"Mthombeni Kamohelo",marks:[5,2,0,10,2,1,5]},
+  {name:"Mthombeni Nosipho",marks:[2,2,1,6,1,3,3]},
+  {name:"Mtsweni Thandeka",marks:[2,3,0,11,4,4,2]},
+  {name:"Ngubeni Alwande",marks:[4,2,2,7,5,4,4]},
+  {name:"Nkosi Nkosi-Inathi",marks:[3,1,0,10,4,2,5]},
+  {name:"Nkosi Siyabonga",marks:[3,0,0,7,3,1,4]},
+  {name:"Sonjica Litha",marks:[3,1,0,9,4,0,6]},
+  {name:"Tshithvana Austin",marks:[2,2,2,8,5,3,5]},
+  {name:"Zondo Ayanda",marks:[2,3,2,9,2,4,5]},
+];
+let meta={};
+
+function getMeta(){
+  return{
+    school:document.getElementById('f-school')?.value||'',
+    educator:document.getElementById('f-educator')?.value||'',
+    subject:document.getElementById('f-subject')?.value||'',
+    grade:document.getElementById('f-grade')?.value||'',
+    task:document.getElementById('f-task')?.value||'',
+    date:document.getElementById('f-date')?.value||'',
+    circuit:document.getElementById('f-circuit')?.value||'',
+    stream:document.getElementById('f-stream')?.value||'',
+    target:document.getElementById('f-target')?.value||'50',
+  };
+}
+function updateMeta(){meta=getMeta();}
+
+// ── CALC ───────────────────────────────────────────────────────────────────
+function getMax(){return questions.reduce((a,q)=>a+Number(q.max),0);}
+function getTotal(m){return m.reduce((a,v)=>a+(Number(v)||0),0);}
+function getPct(m){const mx=getMax();return mx?Math.round(getTotal(m)/mx*100):0;}
+function getLevel(p){
+  if(p<30)return{l:1,cls:'l1',label:'L1'};
+  if(p<40)return{l:2,cls:'l2',label:'L2'};
+  if(p<50)return{l:3,cls:'l3',label:'L3'};
+  if(p<60)return{l:4,cls:'l4',label:'L4'};
+  if(p<70)return{l:5,cls:'l5',label:'L5'};
+  if(p<80)return{l:6,cls:'l6',label:'L6'};
+  if(p<90)return{l:7,cls:'l7',label:'L7'};
+  return{l:8,cls:'l8',label:'L8'};
+}
+function isAbsent(m){return m.every(v=>(Number(v)||0)===0);}
+
+// ── Q CONFIG ───────────────────────────────────────────────────────────────
+function renderQConfig(){
+  document.getElementById('q-rows').innerHTML=questions.map((q,i)=>`
+    <div class="q-row">
+      <label>${q.label}</label>
+      <input value="${q.topic}" placeholder="Topic" oninput="questions[${i}].topic=this.value;renderTable()"/>
+      <input type="number" value="${q.max}" min="1" oninput="questions[${i}].max=Number(this.value)||0;renderTable()" style="width:60px"/>
+      <button class="remove-q" onclick="removeQuestion(${i})">✕ remove</button>
+    </div>`).join('');
+  renderTable();
+}
+function addQuestion(){
+  const n=questions.length+1;
+  questions.push({label:`Q${n}`,topic:`Question ${n}`,max:10});
+  students.forEach(s=>{while(s.marks.length<questions.length)s.marks.push(0);});
+  renderQConfig();
+}
+function removeQuestion(i){
+  if(questions.length<=1)return;
+  questions.splice(i,1);students.forEach(s=>s.marks.splice(i,1));renderQConfig();
+}
+
+// ── MARK TABLE ─────────────────────────────────────────────────────────────
+function renderTable(){
+  const mx=getMax();
+  document.getElementById('mark-thead').innerHTML=`<tr>
+    <th style="width:28px">#</th>
+    <th class="left" style="min-width:170px">Learner</th>
+    ${questions.map((q,i)=>`<th title="${q.topic}">${q.label}<br><span style="font-size:9px;opacity:0.7">(${q.max})</span></th>`).join('')}
+    <th>Total<br><span style="font-size:9px;opacity:0.7">(${mx})</span></th>
+    <th>%</th><th>Lvl</th></tr>`;
+  document.getElementById('mark-tbody').innerHTML=students.map((s,si)=>{
+    const tot=getTotal(s.marks),pct=getPct(s.marks),lv=getLevel(pct),ab=isAbsent(s.marks);
+    return`<tr class="${ab?'absent':''}">
+      <td style="color:var(--ink3);font-family:var(--mono);font-size:10px">${si+1}</td>
+      <td class="nc"><input class="ni" value="${s.name}" oninput="students[${si}].name=this.value"/></td>
+      ${questions.map((q,qi)=>`<td><input class="mi" type="number" min="0" max="${q.max}" value="${s.marks[qi]??0}" oninput="updateMark(${si},${qi},this.value)"/></td>`).join('')}
+      <td class="tc" style="background:${ab?'':'#fffff0'}">${ab?'—':tot}</td>
+      <td class="pc" style="background:${ab?'':'#fffff0'};color:${ab?'inherit':'#1a4d25'};font-weight:600">${ab?'—':pct+'%'}</td>
+      <td><span class="lb ${lv.cls}">${ab?'ABS':lv.label}</span></td></tr>`;
+  }).join('');
+}
+function updateMark(si,qi,val){
+  let v=Number(val)||0;if(v>questions[qi].max)v=questions[qi].max;
+  students[si].marks[qi]=v;renderTable();
+}
+function addStudent(){students.push({name:'',marks:questions.map(()=>0)});renderTable();}
+
+// ── ITEM ANALYSIS ──────────────────────────────────────────────────────────
+function renderSummary(){
+  const mx=getMax();
+  const real=students.filter(s=>s.name.trim());
+  const written=real.filter(s=>!isAbsent(s.marks));
+  const absent=real.length-written.length;
+  const pcts=written.map(s=>getPct(s.marks));
+  const classAvg=written.length?Math.round(pcts.reduce((a,b)=>a+b,0)/written.length):0;
+  const lvlCounts=[0,0,0,0,0,0,0,0];
+  written.forEach(s=>{lvlCounts[getLevel(getPct(s.marks)).l-1]++;});
+  const qAvgs=questions.map((q,qi)=>{
+    const vals=written.map(s=>Number(s.marks[qi])||0);
+    const a=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+    return{q,avg:Math.round(a*10)/10,pct:q.max?Math.round(a/q.max*100):0};
+  });
+  const m=getMeta();
+
+  // SVG bar chart — inline SVG so it prints correctly
+  const barW=44,gap=12,chartH=150,svgPadL=30,svgPadB=30;
+  const svgW=svgPadL+(barW+gap)*questions.length+gap;
+  const svgH=chartH+svgPadB+10;
+  const gridVals=[0,20,40,60,80,100];
+  const gridLines=gridVals.map(v=>{
+    const y=chartH-Math.round(v/100*chartH);
+    return`<line x1="${svgPadL}" y1="${y}" x2="${svgW}" y2="${y}" stroke="#ddd" stroke-width="1"/>
+    <text x="${svgPadL-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#999" font-family="Arial">${v}</text>`;
+  }).join('');
+  const bars=qAvgs.map((item,i)=>{
+    const bh=Math.max(2,Math.round(item.pct/100*chartH));
+    const x=svgPadL+gap+i*(barW+gap);
+    const y=chartH-bh;
+    const col=item.pct>=60?'#2e7d42':item.pct>=40?'#b8860b':'#8b2020';
+    return`<rect x="${x}" y="${y}" width="${barW}" height="${bh}" fill="${col}"/>
+    <text x="${x+barW/2}" y="${y-4}" text-anchor="middle" font-size="10" font-weight="700" fill="${col}" font-family="Arial">${item.pct}</text>
+    <text x="${x+barW/2}" y="${chartH+16}" text-anchor="middle" font-size="10" fill="#555" font-family="Arial">${i+1}</text>`;
+  }).join('');
+
+  document.getElementById('summary-content').innerHTML=`
+  <div style="background:white;border:1px solid var(--border);border-radius:4px;overflow:hidden;font-family:Arial,sans-serif">
+
+    <!-- HEADER: meta + logo -->
+    <div style="display:grid;grid-template-columns:1fr 90px;border-bottom:2px solid var(--green-dark)">
+      <div style="padding:10px 14px">
+        <div style="display:grid;grid-template-columns:80px 1fr 80px 1fr;gap:3px;font-size:12px;margin-bottom:4px">
+          <span><b>TASK:</b></span><span>${m.task}</span><span><b>DATE:</b></span><span>${m.date}</span>
+          <span><b>SUBJECT:</b></span><span colspan="3">${m.subject}</span>
+          <span><b>GRADE:</b></span><span>${m.grade}</span><span><b>EDUCATOR:</b></span><span>${m.educator}</span>
+        </div>
+        <div style="text-align:center;font-size:16px;font-weight:700;letter-spacing:1px;padding:6px 0 2px">${m.school.toUpperCase()}</div>
+        <div style="text-align:center;font-size:11px;font-weight:700;color:#555;letter-spacing:0.5px">ITEM ANALYSIS / DIAGNOSTIC TOOL</div>
+      </div>
+      <div style="border-left:2px solid var(--green-dark);display:flex;align-items:center;justify-content:center;padding:6px">
+        <img src="wapen.jpeg" style="width:72px;height:72px;object-fit:contain" onerror="this.style.display='none'"/>
+      </div>
+    </div>
+
+    <!-- LEVEL CANDIDATES + SUBJECT INFO -->
+    <div style="display:grid;grid-template-columns:1fr 180px;border-bottom:1px solid var(--border)">
+      <div style="padding:10px 14px;font-size:12px;border-right:1px solid var(--border)">
+        <div style="margin-bottom:4px"><b>SUBJECT:</b> ${m.subject}</div>
+        <div style="margin-bottom:4px"><b>TASK:</b> ${m.task}</div>
+        <div style="margin-bottom:4px"><b>EDUCATOR:</b> ${m.educator}</div>
+        <div style="margin-bottom:4px"><b>DATE:</b> ${m.date}</div>
+        <div><b>GRADE:</b> ${m.grade}</div>
+      </div>
+      <div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <tr>
+            <th style="background:var(--green-dark);color:white;padding:4px 8px;font-size:10px;text-align:center">LEVEL</th>
+            <th style="background:var(--green-dark);color:white;padding:4px 8px;font-size:10px;text-align:center">TOTAL CANDIDATES</th>
+          </tr>
+          ${[1,2,3,4,5,6,7,8].map(l=>`
+          <tr>
+            <td style="text-align:center;border:1px solid var(--border);padding:2px 8px">${l}</td>
+            <td style="text-align:center;border:1px solid var(--border);padding:2px 8px">${lvlCounts[l-1]||0}</td>
+          </tr>`).join('')}
+          <tr>
+            <td style="border:1px solid var(--border);padding:2px 8px;font-weight:700;font-size:10px;text-align:center"></td>
+            <td style="text-align:center;border:1px solid var(--border);padding:2px 8px;font-weight:700">${written.length}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- MAIN MARKS TABLE -->
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:Arial,sans-serif">
+        <thead>
+          <!-- Q numbers row -->
+          <tr>
+            <th style="border:1px solid #aaa;padding:4px 6px;background:var(--green-light);text-align:left;min-width:150px;font-size:11px">QUESTION</th>
+            ${questions.map((q,i)=>`<th style="border:1px solid #aaa;padding:4px 5px;background:var(--green-light);text-align:center;font-size:11px">${i+1}</th>`).join('')}
+            <th style="border:1px solid #aaa;padding:4px 5px;background:var(--green-light);text-align:center;font-size:11px">TOTAL</th>
+            <th style="border:1px solid #aaa;padding:4px 5px;background:var(--green-light);text-align:center;font-size:11px">%</th>
+            <th style="border:1px solid #aaa;padding:4px 5px;background:var(--green-light);text-align:center;font-size:11px">LEVEL</th>
+          </tr>
+          <!-- Topic names row — rotated -->
+          <tr>
+            <th style="border:1px solid #aaa;padding:4px 6px;background:var(--green-light);text-align:left;font-size:10px">TOPIC</th>
+            ${questions.map(q=>`<th style="border:1px solid #aaa;background:var(--green-light);padding:3px;text-align:center;height:90px;vertical-align:bottom">
+              <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;font-weight:500;white-space:normal;line-height:1.2;max-height:85px">${q.topic}</div>
+            </th>`).join('')}
+            <th style="border:1px solid #aaa;background:var(--green-light);padding:4px 5px"></th>
+            <th style="border:1px solid #aaa;background:var(--green-light);padding:4px 5px"></th>
+            <th style="border:1px solid #aaa;background:var(--green-light);padding:4px 5px"></th>
+          </tr>
+          <!-- Marks per question row -->
+          <tr>
+            <th style="border:1px solid #aaa;padding:4px 6px;background:#e8f0bc;text-align:left;font-size:10px;color:#1a4d25">MARKS PER QUESTION</th>
+            ${questions.map(q=>`<th style="border:1px solid #aaa;padding:4px 5px;background:#e8f0bc;text-align:center;font-size:11px;color:#1a4d25">${q.max}</th>`).join('')}
+            <th style="border:1px solid #aaa;padding:4px 5px;background:#e8f0bc;text-align:center;font-size:11px;color:#1a4d25">${mx}</th>
+            <th style="border:1px solid #aaa;background:#e8f0bc"></th>
+            <th style="border:1px solid #aaa;background:#e8f0bc"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${real.map((s,i)=>{
+            const tot=getTotal(s.marks),pct=getPct(s.marks),lv=getLevel(pct),ab=isAbsent(s.marks);
+            const rowBg=i%2===0?'white':'#f8fcf5';
+            return`<tr style="background:${rowBg}">
+              <td style="border:1px solid #ccc;padding:3px 8px;text-align:left;font-size:11px">${s.name}</td>
+              ${questions.map((q,qi)=>`<td style="border:1px solid #ccc;padding:3px 5px;text-align:center;font-family:'Courier New',monospace">${ab?'':s.marks[qi]||0}</td>`).join('')}
+              <td style="border:1px solid #ccc;padding:3px 5px;text-align:center;font-weight:700;background:#fffff0;font-family:'Courier New',monospace">${ab?'':tot}</td>
+              <td style="border:1px solid #ccc;padding:3px 5px;text-align:center;font-weight:700;background:${ab?rowBg:'#fffde0'};color:${ab?'inherit':'#1a4d25'};font-family:'Courier New',monospace">${ab?'':pct}</td>
+              <td style="border:1px solid #ccc;padding:3px 5px;text-align:center"><span class="lb ${lv.cls}">${ab?'ABS':lv.label}</span></td>
+            </tr>`;
+          }).join('')}
+          <!-- AVERAGE ROW -->
+          <tr>
+            <td style="border:1px solid #aaa;padding:4px 8px;text-align:left;font-weight:700;background:var(--green-pale);font-size:11px;border-top:2px solid var(--green-dark)">AVERAGE %</td>
+            ${qAvgs.map(item=>`<td style="border:1px solid #aaa;padding:4px 5px;text-align:center;font-weight:700;background:var(--green-pale);color:#1a4d25;font-family:'Courier New',monospace;border-top:2px solid var(--green-dark)">${item.pct}</td>`).join('')}
+            <td style="border:1px solid #aaa;border-top:2px solid var(--green-dark);background:var(--green-pale)"></td>
+            <td style="border:1px solid #aaa;padding:4px 5px;text-align:center;font-weight:700;background:var(--green-pale);color:#1a4d25;font-family:'Courier New',monospace;border-top:2px solid var(--green-dark)">${classAvg}</td>
+            <td style="border:1px solid #aaa;border-top:2px solid var(--green-dark);background:var(--green-pale)"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BAR CHART — inline SVG prints correctly -->
+    <div style="padding:12px 14px;border-top:1px solid var(--border)">
+      <div style="text-align:center;font-size:11px;font-weight:700;background:var(--ink);color:white;padding:4px;margin-bottom:8px;letter-spacing:1px;font-family:Arial">AVERAGE % PER QUESTION</div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 ${svgW} ${svgH}" style="display:block;max-width:${svgW}px;margin:0 auto;overflow:visible">
+        <g transform="translate(0,5)">
+          ${gridLines}
+          ${bars}
+          <line x1="${svgPadL}" y1="0" x2="${svgPadL}" y2="${chartH}" stroke="#ccc" stroke-width="1"/>
+          <line x1="${svgPadL}" y1="${chartH}" x2="${svgW}" y2="${chartH}" stroke="#ccc" stroke-width="1"/>
+          <text transform="translate(12,${chartH/2}) rotate(-90)" text-anchor="middle" font-size="9" fill="#777" font-family="Arial">PERCENTAGE (%)</text>
+          <text x="${(svgW+svgPadL)/2}" y="${chartH+svgPadB+2}" text-anchor="middle" font-size="9" fill="#777" font-family="Arial">QUESTION</text>
+        </g>
+      </svg>
+    </div>
+  </div>`;
+
+  document.getElementById('tab-summary').classList.add('has-data');
+}
+
+// ── SPIP ───────────────────────────────────────────────────────────────────
+function renderSpip(){
+  const m=getMeta();
+  const written=students.filter(s=>s.name.trim()&&!isAbsent(s.marks));
+  const qStats=questions.map((q,qi)=>{
+    const vals=written.map(s=>Number(s.marks[qi])||0);
+    const a=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+    return{q,qi,avg:Math.round(a*10)/10,pct:q.max?Math.round(a/q.max*100):0};
+  });
+  const weakest=[...qStats].sort((a,b)=>a.pct-b.pct).slice(0,2);
+  const atRiskCount=students.filter(s=>s.name.trim()&&!isAbsent(s.marks)&&getPct(s.marks)<50).length;
+
+  // Store data by index so onclick doesn't pass strings with special chars
+  weakest.forEach((item,i)=>{
+    spipRowData[i]={topicName:`${item.q.label}: ${item.q.topic}`,pct:item.pct};
+  });
+  const taS=`width:100%;border:none;outline:none;font-size:11px;font-family:Arial,sans-serif;background:transparent;resize:vertical;min-height:72px;color:#1a1a18;line-height:1.5;`;
+
+  const rows=weakest.map((item,i)=>{
+    const tl=`${item.q.label}: ${item.q.topic}`;
+    return`<tr>
+      <td style="border:1px solid #bbb;padding:4px;text-align:center;font-weight:700;font-size:12px;width:32px;vertical-align:middle">${i+1}</td>
+      <td style="border:1px solid #bbb;padding:6px;background:#fffbe6;vertical-align:top;width:130px">
+        <div style="font-weight:700;font-size:11px;color:#5a3a00">${tl}</div>
+        <div style="font-size:10px;color:#999;margin-top:3px">Class avg: ${item.pct}%</div>
+      </td>
+      <td style="border:1px solid #bbb;padding:3px;vertical-align:top;width:115px"><textarea style="${taS}" placeholder="Describe exact challenges observed in this topic..."></textarea></td>
+      <td style="border:1px solid #bbb;padding:3px;background:#f0f4ff;vertical-align:top;width:105px"><textarea style="${taS}" placeholder="e.g. Level 1–3 learners (approx. ${atRiskCount})"></textarea></td>
+      <td style="border:1px solid #bbb;padding:3px;background:#f0fff4;vertical-align:top;width:140px;position:relative">
+        <textarea id="intervention-${i}" style="${taS}" placeholder="Describe intervention strategy / activity..."></textarea>
+        <button onclick="suggestIntervention(${i})" style="margin-top:3px;padding:3px 8px;font-size:10px;border:1px solid #2e7d42;background:white;color:#1a4d25;border-radius:2px;cursor:pointer;width:100%;font-family:Arial"><span id="ai-spin-${i}" style="display:none">⏳ </span>✦ AI suggest</button>
+      </td>
+      <td style="border:1px solid #bbb;padding:3px;vertical-align:top;width:100px"><textarea style="${taS}" placeholder="e.g. Learners achieve ≥${m.target}% in next assessment..."></textarea></td>
+      <td style="border:1px solid #bbb;padding:3px;vertical-align:top;width:100px"><textarea style="${taS}" placeholder="e.g. Educator, HOD, SBST..."></textarea></td>
+      <td style="border:1px solid #bbb;padding:3px;vertical-align:top;width:90px"><textarea style="${taS}" placeholder="Specific date and time..."></textarea></td>
+      <td style="border:1px solid #bbb;padding:3px;vertical-align:top;width:90px"><textarea style="${taS}" placeholder="Date completed..."></textarea></td>
+      <td style="border:1px solid #bbb;padding:3px;vertical-align:top;width:90px"><textarea style="${taS}" placeholder="DH/DP/Principal comment..."></textarea></td>
+    </tr>`;
+  }).join('');
+
+  // Column headers — each in its own <th>, no row-level writing-mode
+  const headers=[
+    {t:'No.',w:'32px',rotate:false},
+    {t:'CHALLENGING TOPIC/ (any other challenge, including progressed learners, etc)',w:'130px',rotate:true},
+    {t:'SPECIFY THE EXACT CHALLENGES IN THE TOPIC/ (any other challenge, including progressed learners, etc)',w:'115px',rotate:true},
+    {t:'TARGETED GROUP',w:'105px',rotate:true},
+    {t:'INTERVENTION STRATEGY / ACTIVITY',w:'140px',rotate:true},
+    {t:'PERFORMANCE INDICATOR (After assessment) Subject Analysis',w:'100px',rotate:true},
+    {t:'RESPONSIBILITY (who should address the challenges) Educator, SBST, Academic Office, Disciplinary office, Colleague',w:'100px',rotate:true},
+    {t:'TIMELINES (time at which the challenges should be addressed) Specific Date and Time',w:'90px',rotate:true},
+    {t:'PROGRESS BY THE TEACHER (Date completed)',w:'90px',rotate:true},
+    {t:'MONITORING By DH/DP/Principal (comment on the progress)',w:'90px',rotate:true},
+  ];
+  const thHTML=headers.map(h=>{
+    if(!h.rotate)return`<th style="border:1px solid #999;background:var(--green-dark);color:white;padding:6px 3px;font-size:10px;width:${h.w};text-align:center;vertical-align:middle">${h.t}</th>`;
+    return`<th style="border:1px solid #999;background:var(--green-dark);color:white;padding:3px;width:${h.w};height:110px;vertical-align:middle;text-align:center">
+      <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9.5px;font-weight:600;line-height:1.3;white-space:normal;font-family:Arial">${h.t}</div>
+    </th>`;
+  }).join('');
+
+  document.getElementById('spip-render').innerHTML=`
+  <div style="background:white;font-family:Arial,sans-serif;padding:16px;border:1px solid var(--border);border-radius:4px;max-width:1100px">
+    <!-- HEADER -->
+    <table style="width:100%;border-collapse:collapse;border:2px solid var(--ink);margin-bottom:10px">
+      <tr>
+        <td style="width:110px;padding:8px;border-right:2px solid var(--ink);text-align:center;vertical-align:middle">
+          <img src="wapen.jpeg" style="width:80px;height:80px;object-fit:contain" onerror="this.style.display='none'"/>
+        </td>
+        <td style="text-align:center;padding:10px;vertical-align:middle">
+          <div style="font-size:20px;font-weight:700;letter-spacing:2px">${m.school.toUpperCase()}</div>
+          <div style="font-size:14px;font-weight:700;margin-top:6px">SUBJECT PERFORMANCE IMPROVEMENT PLAN (SPIP)</div>
+        </td>
+      </tr>
+    </table>
+    <!-- META -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:13px">
+      <tr>
+        <td style="width:90px;font-weight:700;padding:3px 4px">Educator:</td>
+        <td style="padding:3px 4px">${m.educator}</td>
+        <td style="width:150px;font-weight:700;text-align:right;padding:3px 8px">Percentage target:</td>
+        <td style="width:80px;padding:3px 0"><input style="width:70px;padding:3px 6px;border:1px solid #999;font-size:13px;font-weight:700;text-align:center;font-family:Arial;outline:none" value="${m.target}%"/></td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;padding:3px 4px">Subject:</td>
+        <td style="padding:3px 4px">${m.subject}</td><td></td><td></td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;padding:3px 4px">Task:</td>
+        <td style="padding:3px 4px">${m.task}</td><td></td><td></td>
+      </tr>
+      <tr>
+        <td style="font-weight:700;padding:3px 4px">Date:</td>
+        <td style="padding:3px 4px">${m.date}</td>
+        <td style="font-weight:700;text-align:right;padding:3px 8px">Grade:</td>
+        <td style="padding:3px 0"><input style="width:60px;padding:3px 6px;border:1px solid #999;font-size:13px;font-weight:700;text-align:center;font-family:Arial;outline:none" value="${m.grade}"/></td>
+      </tr>
+    </table>
+    <!-- TABLE -->
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+        <thead><tr>${thHTML}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <!-- SIGNATURES -->
+    <table style="width:100%;margin-top:28px;font-size:12px">
+      <tr>
+        <td style="width:33%;padding-top:28px;border-top:1px solid #999">Educator signature &amp; date</td>
+        <td style="width:33%;padding-top:28px;border-top:1px solid #999;text-align:center">HOD signature &amp; date</td>
+        <td style="width:33%;padding-top:28px;border-top:1px solid #999;text-align:right">Principal signature &amp; date</td>
+      </tr>
+    </table>
+  </div>`;
+  document.getElementById('tab-spip').classList.add('has-data');
+}
+
+// Store spip row data by index so onclick doesn't need string escaping
+const spipRowData={};
+
+async function suggestIntervention(rowIdx){
+  const m=getMeta();
+  const {topicName,pct}=spipRowData[rowIdx]||{topicName:'this topic',pct:0};
+  const spin=document.getElementById(`ai-spin-${rowIdx}`);
+  const ta=document.getElementById(`intervention-${rowIdx}`);
+  if(!spin||!ta)return;
+  spin.style.display='inline';
+  ta.value='Generating suggestion...';
+  ta.style.color='#999';
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        messages:[{role:"user",content:`You are a South African high school educator. Suggest a practical, specific intervention strategy for a Grade ${m.grade} ${m.subject} class that scored only ${pct}% on the topic: "${topicName}". Write 3-4 sentences describing concrete classroom activities, remediation steps, and support strategies the educator can implement. Be direct and practical. No headings, just a paragraph.`}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.map(b=>b.text||'').join('')||'';
+    ta.value=text||'No suggestion returned.';
+    ta.style.color='#1a1a18';
+  }catch(e){
+    ta.value='Could not generate — check your connection and try again.';
+    ta.style.color='#8b2020';
+  }
+  spin.style.display='none';
+}
+
+// ── FORTNIGHTLY ────────────────────────────────────────────────────────────
+function renderFortnightly(){
+  const m=getMeta();
+  const streamCodes={BCM:'1',Sciences:'2',Languages:'3',Humanities:'4',Technical:'5'};
+  const sc=streamCodes[m.stream]||'1';
+  const real=students.filter(s=>s.name.trim());
+  const subj=m.subject.includes('Computer')?'CAT':m.subject.slice(0,6);
+  const lvlR=[
+    {label:'L1',sub:'0-29',min:0,max:29},{label:'L2',sub:'30-39',min:30,max:39},
+    {label:'L3',sub:'40-49',min:40,max:49},{label:'L4',sub:'50-59',min:50,max:59},
+    {label:'L5',sub:'60-69',min:60,max:69},{label:'L6',sub:'70-79',min:70,max:79},
+    {label:'L7',sub:'80-89',min:80,max:89},{label:'L8',sub:'90-100',min:90,max:100},
+  ];
+  const rows=real.map((s,i)=>{
+    const pct=getPct(s.marks),ab=isAbsent(s.marks);
+    const cols=lvlR.map(lr=>{
+      let val='';
+      if(ab&&lr.label==='L1')val='0';
+      else if(!ab&&pct>=lr.min&&pct<=lr.max)val=String(pct);
+      return`<td style="text-align:center;padding:3px 5px;border:1px solid #bbb;font-size:11px;font-family:'Courier New',monospace;background:${val?'#fffde8':'white'}">${val}</td>`;
+    }).join('');
+    return`<tr style="background:${i%2===0?'white':'#f8fcf5'}">
+      <td style="text-align:center;padding:3px 5px;border:1px solid #bbb;font-size:11px">${i+1}</td>
+      <td style="padding:3px 7px;border:1px solid #bbb;font-size:11px;background:#d6e8bc">${s.name}</td>
+      <td style="text-align:center;padding:3px 5px;border:1px solid #bbb;font-size:11px">${subj}</td>
+      <td style="text-align:center;padding:3px 5px;border:1px solid #bbb;font-size:11px">${sc}</td>
+      ${cols}</tr>`;
+  }).join('');
+
+  document.getElementById('fortnightly-render').innerHTML=`
+  <div style="background:white;font-family:Arial,sans-serif;font-size:13px;padding:16px;max-width:980px;border:1px solid var(--border);border-radius:4px">
+    <table style="width:100%;border:none;margin-bottom:3px">
+      <tr>
+        <td style="width:200px;vertical-align:middle">
+          <img src="gov.png" style="width:190px;height:auto;object-fit:contain" onerror="this.outerHTML='<div style=border:2px solid #1a5276;padding:6px 10px;display:inline-block><div style=font-size:18px;font-weight:700;color:#1a5276;letter-spacing:-1px>education</div><div style=font-size:9px;color:#1a5276;line-height:1.4>DEPARTMENT: EDUCATION<br>MPUMALANGA PROVINCE</div></div>'"/>
+        </td>
+        <td style="vertical-align:bottom;padding-bottom:3px;font-size:11px;color:#333;line-height:1.7">
+          Building No. 5, Government Boulevard, Riverside Park, Mpumalanga Province<br>
+          Private Bag X11341, Mbombela, 1200<br>
+          Tel: 013 766 55552/5115, Toll Free Line: 0800 203 116
+        </td>
+      </tr>
+    </table>
+    <table style="width:100%;border:none;margin-bottom:5px">
+      <tr>
+        <td style="font-size:11px;font-style:italic;color:#444">Litiko le Temfundvo, Umnyango we Fundo</td>
+        <td style="text-align:center;font-size:11px;font-style:italic;color:#444">Department van Onderwys</td>
+        <td style="text-align:right;font-size:11px;font-style:italic;color:#444">Ndzawulo ya Dyondzo</td>
+      </tr>
+    </table>
+    <div style="text-align:center;margin-bottom:8px">
+      <div style="font-weight:700;font-size:13px">90% - 100% Schools</div>
+      <div style="font-weight:700;font-size:14px">Fortnightly Report</div>
+      <div style="font-weight:700;font-size:12px">Analysis of learner performance according to their streams</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px">
+      <tr>
+        <td style="width:140px"><strong>NAME OF SCHOOL:</strong></td><td style="width:240px">${m.school}</td>
+        <td style="width:70px"><strong>CIRCUIT:</strong></td><td>${m.circuit}</td>
+      </tr>
+      <tr><td><strong>EDUCATOR:</strong></td><td>${m.educator}</td><td><strong>GRADE:</strong></td><td>${m.grade}</td></tr>
+      <tr><td><strong>SUBJECT:</strong></td><td colspan="3">${m.subject}</td></tr>
+      <tr>
+        <td><strong>TASK:</strong></td><td>${m.task}</td>
+        <td colspan="2" style="font-size:11px">
+          <table style="border-collapse:collapse;float:right">
+            <tr>
+              <td style="padding:1px 6px;border:1px solid #bbb;font-weight:700">Stream</td>
+              ${['BCM','Sciences','Languages','Humanities','Technical'].map(s=>`<td style="padding:1px 6px;border:1px solid #bbb">${s}</td>`).join('')}
+            </tr>
+            <tr>
+              <td style="padding:1px 6px;border:1px solid #bbb;font-weight:700">Code</td>
+              ${[1,2,3,4,5].map(n=>`<td style="padding:1px 6px;border:1px solid #bbb;text-align:center">${n}</td>`).join('')}
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr><td><strong>DATE:</strong></td><td>${m.date}</td><td colspan="2"></td></tr>
+    </table>
+    <table style="width:100%;border-collapse:collapse;margin-top:10px">
+      <thead>
+        <tr>
+          <th style="border:1px solid #bbb;padding:4px 5px;font-size:10px;background:#d6e8bc;text-align:center;width:30px">No.</th>
+          <th style="border:1px solid #bbb;padding:4px 7px;font-size:10px;background:#d6e8bc;text-align:left;min-width:150px">Learner</th>
+          <th style="border:1px solid #bbb;padding:4px 5px;font-size:10px;background:#d6e8bc;text-align:center">Subject</th>
+          <th style="border:1px solid #bbb;padding:4px 5px;font-size:10px;background:#d6e8bc;text-align:center">Stream<br>code</th>
+          ${lvlR.map(lr=>`<th style="border:1px solid #bbb;padding:4px 5px;font-size:10px;background:#9dc3e6;text-align:center;min-width:46px">${lr.label}<br><span style="font-weight:400">${lr.sub}</span></th>`).join('')}
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+  document.getElementById('tab-fortnightly').classList.add('has-data');
+}
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(`page-${id}`).classList.add('active');
+  document.getElementById(`tab-${id}`).classList.add('active');
+  if(id==='summary')renderSummary();
+  if(id==='spip')renderSpip();
+  if(id==='fortnightly')renderFortnightly();
+}
+function printPage(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('pt'));
+  const a=document.querySelector('.page.active');
+  if(a)a.classList.add('pt');
+  window.print();
+}
+
+// ── EXCEL IMPORT ───────────────────────────────────────────────────────────
+// SheetJS loaded from CDN
+function loadSheetJS(cb){
+  if(window.XLSX){cb();return;}
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=cb;
+  s.onerror=()=>{document.getElementById('import-status').textContent='Could not load Excel library. Check your connection.';};
+  document.head.appendChild(s);
+}
+
+function importFromExcel(input){
+  const file=input.files[0];
+  if(!file)return;
+  const status=document.getElementById('import-status');
+  status.textContent='Reading file...';
+  status.style.color='var(--ink3)';
+
+  loadSheetJS(()=>{
+    const reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        const data=new Uint8Array(e.target.result);
+        const wb=XLSX.read(data,{type:'array'});
+        // Use first sheet
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+
+        // Find the column most likely to contain learner names:
+        // Score each column — a "name" column has mostly strings with spaces or
+        // two words, few numbers, at least 5 non-empty values
+        if(!rows||rows.length<2){
+          status.textContent='Could not read rows from this file.';
+          status.style.color='var(--red)';return;
+        }
+
+        // Determine number of columns from first few rows
+        const numCols=Math.max(...rows.slice(0,20).map(r=>r.length));
+        let bestCol=-1,bestScore=-1;
+        for(let c=0;c<numCols;c++){
+          let score=0,count=0;
+          for(let r=0;r<rows.length;r++){
+            const cell=String(rows[r][c]||'').trim();
+            if(!cell||cell===''||cell==='0')continue;
+            count++;
+            // Likely a name: has a space, no digits, reasonable length
+            if(/^[A-Za-z\s\-\.\']+$/.test(cell)&&cell.includes(' ')&&cell.length>4&&cell.length<50)score+=2;
+            else if(/^[A-Za-z]+$/.test(cell)&&cell.length>3)score+=1;
+          }
+          if(count>=3&&score>bestScore){bestScore=score;bestCol=c;}
+        }
+
+        if(bestCol===-1){
+          status.textContent='No learner name column found. Make sure names are in a column (First Last format).';
+          status.style.color='var(--red)';return;
+        }
+
+        // Extract names, skip header-like rows (all caps, short, or numeric)
+        const names=[];
+        for(let r=0;r<rows.length;r++){
+          const cell=String(rows[r][bestCol]||'').trim();
+          if(!cell||cell==='0'||cell==='')continue;
+          // Skip obvious headers
+          if(cell===cell.toUpperCase()&&cell.length<20&&!/\s/.test(cell))continue;
+          if(/^\d+$/.test(cell))continue;
+          if(/^[A-Za-z\s\-\.\']+$/.test(cell)&&cell.length>3)names.push(cell);
+        }
+
+        if(names.length===0){
+          status.textContent='No valid names found. Check the file has learner names in one column.';
+          status.style.color='var(--red)';return;
+        }
+
+        // Ask user: replace or append
+        const action=students.filter(s=>s.name.trim()).length>0
+          ?confirm(`Found ${names.length} learner name(s).\n\nClick OK to REPLACE current list.\nClick Cancel to ADD to existing list.`)
+          :true;
+
+        if(action){
+          // Replace
+          students=names.map(n=>({name:n,marks:questions.map(()=>0)}));
+        } else {
+          // Append — avoid duplicates
+          const existing=new Set(students.map(s=>s.name.toLowerCase()));
+          const toAdd=names.filter(n=>!existing.has(n.toLowerCase()));
+          toAdd.forEach(n=>students.push({name:n,marks:questions.map(()=>0)}));
+        }
+
+        renderTable();
+        status.textContent=`✓ ${names.length} learner${names.length!==1?'s':''} imported from "${file.name}"`;
+        status.style.color='var(--green-mid)';
+        // Reset input so same file can be re-uploaded
+        input.value='';
+      }catch(err){
+        status.textContent='Error reading file: '+err.message;
+        status.style.color='var(--red)';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function clearAllStudents(){
+  if(!confirm('Clear all learners and marks?'))return;
+  students=[];
+  renderTable();
+  document.getElementById('import-status').textContent='';
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+updateMeta();renderQConfig();
+</script>
+</body>
+</html>
